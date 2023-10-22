@@ -102,8 +102,11 @@ steps:
         ❌ Release {{build.number}} for {{repo.name}}/{{commit.branch}} failed!
       {{/success}}
 trigger:
-  event: 
-    - tag
+  ref:
+    include:
+      - /refs/tags/*
+    exclude:
+      - /refs/tags/*beta*
 
 ---
 kind: pipeline
