@@ -1,0 +1,106 @@
+---
+kind: pipeline
+type: docker
+name: build
+
+steps:
+- name: build client
+  image: alpine:3.18
+  commands:
+  - apk update
+  - apk add zip
+  - mkdir -p dist
+  - (cd client/ && zip -r ../dist/client.zip modlist.html manifest.json overrides/*)
+  - ls dist/
+- name: build server
+  image: alpine:3.18
+  commands:
+  - apk update
+  - apk add zip
+  - mkdir -p dist
+  - (cd server/ && zip -r ../dist/server.zip .)
+  - ls dist/
+- name: discord build notification
+  image: appleboy/drone-discord
+  settings:
+    webhook_id:
+      from_secret: discord_id
+    webhook_token:
+      from_secret: discord_secret
+    message: >
+      {{#success build.status}}
+        ✅ Build {{build.number}} for {{repo.name}}/{{commit.branch}} succeeded!
+      {{else}}
+        ❌ Build {{build.number}} for {{repo.name}}/{{commit.branch}} failed!
+      {{/success}}
+  when:
+    event:
+      exclude:
+        - pull_request
+        - tag
+        - promote
+trigger:
+  branch:
+    exclude:
+      - master
+  event:
+    exclude:
+      - tag
+      - promote
+
+---
+kind: pipeline
+type: docker
+name: publish
+
+steps:
+- name: discord pre-release notification
+  image: appleboy/drone-discord
+  settings:
+    webhook_id:
+      from_secret: discord_id
+    webhook_token:
+      from_secret: discord_secret
+    message: ⌛ Starting release ${DRONE_TAG} for {{repo.name}}/{{commit.branch}}
+- name: build client
+  image: alpine:3.18
+  commands:
+  - apk update
+  - apk add zip
+  - mkdir -p dist
+  - (cd client/ && zip -r ../dist/steampunk-custom_1.19.2-${DRONE_TAG}.zip modlist.html manifest.json overrides/*)
+  - ls dist/
+- name: build server
+  image: alpine:3.18
+  commands:
+  - apk update
+  - apk add zip
+  - mkdir -p dist
+  - (cd server/ && zip -r ../dist/steampunk-custom_1.19.2-${DRONE_TAG}-server.zip .)
+  - ls dist/
+- name: publish
+  image: plugins/github-release
+  settings:
+    title: Release ${DRONE_TAG}
+    api_key:
+      from_secret: github_api_key
+    files: dist/*
+  when:
+    event:
+    - tag
+- name: discord release notification
+  image: appleboy/drone-discord
+  settings:
+    webhook_id:
+      from_secret: discord_id
+    webhook_token:
+      from_secret: discord_secret
+    message: >
+      {{#success build.status}}
+        🎉 Release ${DRONE_TAG} for {{repo.name}}/{{commit.branch}} succeeded!
+      {{else}}
+        ❌ Release {{build.number}} for {{repo.name}}/{{commit.branch}} failed!
+      {{/success}}
+trigger:
+  event: 
+    - tag
