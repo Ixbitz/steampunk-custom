@@ -149,12 +149,5 @@ steps:
         ❌ Pre-Release ${DRONE_COMMIT_SHA:0:8} for {{repo.name}}/{{commit.branch}} failed!
       {{/success}}
 trigger:
-  branch:
-    include:
-      - master
-  event: 
-    include:
-      - push
-    exclude:
-      - tag
-      - promote
+  ref:
+    - /refs/tags/*beta*
