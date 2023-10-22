@@ -153,4 +153,5 @@ steps:
       {{/success}}
 trigger:
   ref:
-    - /refs/tags/*beta*
+    include:
+    - /refs/tags/*-beta
