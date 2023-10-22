@@ -51,7 +51,7 @@ trigger:
 ---
 kind: pipeline
 type: docker
-name: publish
+name: publish release
 
 steps:
 - name: discord pre-release notification
@@ -104,3 +104,57 @@ steps:
 trigger:
   event: 
     - tag
+
+---
+kind: pipeline
+type: docker
+name: publish pre-release
+
+steps:
+- name: build client
+  image: alpine:3.18
+  commands:
+  - apk update
+  - apk add zip
+  - mkdir -p dist
+  - (cd client/ && zip -r ../dist/steampunk-custom_1.19.2-${DRONE_COMMIT_SHA:0:8}.zip modlist.html manifest.json overrides/*)
+  - ls dist/
+- name: build server
+  image: alpine:3.18
+  commands:
+  - apk update
+  - apk add zip
+  - mkdir -p dist
+  - (cd server/ && zip -r ../dist/steampunk-custom_1.19.2-${DRONE_COMMIT_SHA:0:8}-server.zip .)
+  - ls dist/
+- name: publish
+  image: plugins/github-release
+  settings:
+    prerelease: true
+    title: Release ${DRONE_COMMIT_SHA:0:8}
+    api_key:
+      from_secret: github_api_key
+    files: dist/*
+- name: discord release notification
+  image: appleboy/drone-discord
+  settings:
+    webhook_id:
+      from_secret: discord_id
+    webhook_token:
+      from_secret: discord_secret
+    message: >
+      {{#success build.status}}
+        🎉 Pre-Release ${DRONE_COMMIT_SHA:0:8} for {{repo.name}}/{{commit.branch}} succeeded!
+      {{else}}
+        ❌ Pre-Release ${DRONE_COMMIT_SHA:0:8} for {{repo.name}}/{{commit.branch}} failed!
+      {{/success}}
+trigger:
+  branch:
+    include:
+      - master
+  event: 
+    include:
+      - push
+    exclude:
+      - tag
+      - promote
