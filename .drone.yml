@@ -104,9 +104,9 @@ steps:
 trigger:
   ref:
     include:
-      - /refs/tags/*
+      - refs/tags/*
     exclude:
-      - /refs/tags/*beta*
+      - refs/tags/*beta*
 
 ---
 kind: pipeline
@@ -120,7 +120,7 @@ steps:
   - apk update
   - apk add zip
   - mkdir -p dist
-  - (cd client/ && zip -r ../dist/steampunk-custom_1.19.2-${DRONE_COMMIT_SHA:0:8}.zip modlist.html manifest.json overrides/*)
+  - (cd client/ && zip -r ../dist/steampunk-custom_1.19.2-${DRONE_TAG}.zip modlist.html manifest.json overrides/*)
   - ls dist/
 - name: build server
   image: alpine:3.18
@@ -128,17 +128,17 @@ steps:
   - apk update
   - apk add zip
   - mkdir -p dist
-  - (cd server/ && zip -r ../dist/steampunk-custom_1.19.2-${DRONE_COMMIT_SHA:0:8}-server.zip .)
+  - (cd server/ && zip -r ../dist/steampunk-custom_1.19.2-${DRONE_TAG}-server.zip .)
   - ls dist/
 - name: publish
   image: plugins/github-release
   settings:
     prerelease: true
-    title: Release ${DRONE_COMMIT_SHA:0:8}
+    title: Beta Release ${DRONE_TAG}
     api_key:
       from_secret: github_api_key
     files: dist/*
-- name: discord release notification
+- name: discord pre-release notification
   image: appleboy/drone-discord
   settings:
     webhook_id:
@@ -147,9 +147,9 @@ steps:
       from_secret: discord_secret
     message: >
       {{#success build.status}}
-        🎉 Pre-Release ${DRONE_COMMIT_SHA:0:8} for {{repo.name}}/{{commit.branch}} succeeded!
+        🎉 Beta Pre-Release ${DRONE_TAG} for {{repo.name}}/{{commit.branch}} succeeded!
       {{else}}
-        ❌ Pre-Release ${DRONE_COMMIT_SHA:0:8} for {{repo.name}}/{{commit.branch}} failed!
+        ❌ Beta Pre-Release ${DRONE_TAG} for {{repo.name}}/{{commit.branch}} failed!
       {{/success}}
 trigger:
   ref:
