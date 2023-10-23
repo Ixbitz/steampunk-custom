@@ -154,4 +154,4 @@ steps:
 trigger:
   ref:
     include:
-    - refs/tags/*-beta
+    - refs/tags/*-beta*
