@@ -23,6 +23,7 @@ An expanded modpack based on [SHXRKIE](https://legacy.curseforge.com/members/shx
 - Beautify
 - Botania
 - Relics
+- Corpse
 
 ![Features Banner](https://cdn.discordapp.com/attachments/1031970397152886806/1117699473892712558/Features.png)
 
