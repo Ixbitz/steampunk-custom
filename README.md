@@ -53,3 +53,11 @@ An expanded modpack based on [SHXRKIE](https://legacy.curseforge.com/members/shx
 📋 1000+ detailed quests to help guide you & 1000+ advancements
 
 ⚜️ Over 250+ high quality selected mods (6gb recommended)
+
+## How to use
+
+1. Click on "Releases" on the right -->
+2. Navigate to the latest full release
+3. Download the ZIP that does not have "server" in the name
+4. Use Curseforge launcher to import the ZIP
+5. Play!
